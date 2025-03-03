@@ -4,19 +4,16 @@ const bodyParser = require('body-parser');
 const axios = require('axios');
 const multer = require('multer');
 const path = require('path');
-const FormData = require('form-data'); // Добавлено
-const fs = require('fs'); // Добавлено
+const FormData = require('form-data');
+const fs = require('fs');
 
 const app = express();
 app.use(bodyParser.json());
 
-// Настройка Multer для временного хранения файлов
 const upload = multer({ dest: 'temp/' });
 
-// Подключение к базе данных SQLite
 const db = new sqlite3.Database('./database.db');
 
-// Создание таблицы "units" (если она не существует)
 db.run(`
   CREATE TABLE IF NOT EXISTS units (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25,29 +22,25 @@ db.run(`
   )
 `);
 
-// Логирование
 const log = (message) => {
   console.log(`[LOG] ${new Date().toISOString()}: ${message}`);
 };
 
-// Загрузка файла в FileStorage
 const uploadFile = async (file) => {
   const formData = new FormData();
 
-  // Проверка, что файл существует
   if (!fs.existsSync(file.path)) {
     throw new Error('File does not exist');
   }
 
-  // Добавляем файл в FormData
   formData.append('file', fs.createReadStream(file.path), {
-    filename: file.originalname, // Имя файла
+    filename: file.originalname,
   });
 
   try {
     const response = await axios.post('http://localhost:3002/upload', formData, {
       headers: {
-        ...formData.getHeaders(), // Автоматически добавляет нужные заголовки
+        ...formData.getHeaders(),
       },
     });
 

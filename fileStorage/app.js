@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const axios = require('axios'); // Добавлено
+const axios = require('axios');
 
 const app = express();
 const PORT = 3002;

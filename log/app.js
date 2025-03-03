@@ -1,18 +1,15 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const bodyParser = require('body-parser');
-const path = require('path'); // Добавлено
+const path = require('path');
 
 const app = express();
 app.use(bodyParser.json());
 
-// Указываем путь к базе данных внутри папки "log"
 const dbPath = path.join(__dirname, 'logs.db');
 
-// Подключение к базе данных SQLite
 const db = new sqlite3.Database(dbPath);
 
-// Создание таблицы "logs" (если она не существует)
 db.run(`
   CREATE TABLE IF NOT EXISTS logs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
