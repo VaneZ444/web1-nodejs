@@ -17,7 +17,7 @@ Gateway будет доступен по адресу: **http://localhost:3000**
 # Доступные эндпоинты
 
 ## Юниты
-# Создание юнита:
+### Создание юнита:
 curl -X POST http://localhost:3000/units \
 -H "Content-Type: application/json" \
 -d '{"name": "Unit 1", "image": "image1.jpg"}'
