@@ -47,7 +47,7 @@ app.use(
 // Обработка корневого маршрута
 app.get('/', (req, res) => {
   res.json({
-    message: 'Welcome to the Gateway!',
+    message: 'welcome to the gateway',
     endpoints: {
       units: `${GATEWAY_URL}/units`,
       upload: `${GATEWAY_URL}/upload`,

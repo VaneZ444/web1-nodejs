@@ -21,9 +21,22 @@ db.run(`
     image TEXT NOT NULL
   )
 `);
-
-const log = (message) => {
+const sendLog = async (service, message, start, end) => {
+  try {
+    await axios.post('http://localhost:3003/logs', {
+      service,
+      message,
+      start_time: start,
+      end_time: end,
+    });
+  } catch (err) {
+    console.error('Error sending log:', err.message);
+  }
+};
+const log = (message, start_time) => {
   console.log(`[LOG] ${new Date().toISOString()}: ${message}`);
+  console.log("units", message, start_time, new Date().toISOString())
+  sendLog("units", message, start_time, new Date().toISOString())
 };
 
 const uploadFile = async (file) => {
@@ -56,13 +69,13 @@ const uploadFile = async (file) => {
 };
 
 // Создание юнита
-app.post('/', upload.single('image'), async (req, res) => {
+app.post('/units', upload.single('image'), async (req, res) => {
   const { name } = req.body;
   const imageFile = req.file;
-
+  const start_time = new Date().toISOString()
   // Валидация
   if (!name || name.length <= 4 || !imageFile) {
-    log('Invalid input: name or image is invalid');
+    log('Invalid input: name or image is invalid', start_time);
     return res.status(400).json({ error: 'Invalid input' });
   }
 
@@ -79,8 +92,9 @@ app.post('/', upload.single('image'), async (req, res) => {
           log(`Error creating unit: ${err.message}`);
           return res.status(500).json({ error: err.message });
         }
-        log(`Unit created with ID: ${this.lastID}`);
-        res.status(201).json({ id: this.lastID, name, image: imageUrl });
+        setTimeout(() => {
+          log(`Unit created with ID: ${this.lastID}`, start_time);
+          res.status(201).json({ id: this.lastID, name, image: imageUrl })}, 1000);
       }
     );
   } catch (err) {
@@ -91,12 +105,13 @@ app.post('/', upload.single('image'), async (req, res) => {
 
 // Получение списка юнитов
 app.get('/units', (req, res) => {
+  const start_time = new Date().toISOString()
   db.all('SELECT * FROM units', (err, rows) => {
     if (err) {
       log(`Error fetching units: ${err.message}`);
       return res.status(500).json({ error: err.message });
     }
-    log('Units fetched successfully');
+    log('Units fetched successfully', start_time);
     res.status(200).json(rows);
   });
 });
@@ -104,17 +119,17 @@ app.get('/units', (req, res) => {
 // Получение юнита по ID
 app.get('/units/:id', (req, res) => {
   const { id } = req.params;
-
+  const start_time = new Date().toISOString()
   db.get('SELECT * FROM units WHERE id = ?', [id], (err, row) => {
     if (err) {
-      log(`Error fetching unit with ID ${id}: ${err.message}`);
+      log(`Error fetching unit with ID ${id}: ${err.message}`, start_time);
       return res.status(500).json({ error: err.message });
     }
     if (!row) {
       log(`Unit with ID ${id} not found`);
       return res.status(404).json({ error: 'Unit not found' });
     }
-    log(`Unit with ID ${id} fetched successfully`);
+    log(`Unit with ID ${id} fetched successfully`, start_time);
     res.status(200).json(row);
   });
 });
@@ -123,10 +138,11 @@ app.get('/units/:id', (req, res) => {
 app.put('/units/:id', (req, res) => {
   const { id } = req.params;
   const { name, image } = req.body;
-
+  const start_time = new Date().toISOString()
   // Валидация
   if (!name || name.length <= 4 || !image) {
-    log('Invalid input: name or image is invalid');
+    //console.log('Request body:', req.body);
+    log('Invalid input: name or image is invalid', start_time);
     return res.status(400).json({ error: 'Invalid input' });
   }
 
@@ -135,14 +151,14 @@ app.put('/units/:id', (req, res) => {
     [name, image, id],
     function (err) {
       if (err) {
-        log(`Error updating unit with ID ${id}: ${err.message}`);
+        log(`Error updating unit with ID ${id}: ${err.message}`, start_time);
         return res.status(500).json({ error: err.message });
       }
       if (this.changes === 0) {
-        log(`Unit with ID ${id} not found`);
+        log(`Unit with ID ${id} not found`, start_time);
         return res.status(404).json({ error: 'Unit not found' });
       }
-      log(`Unit with ID ${id} updated successfully`);
+      log(`Unit with ID ${id} updated successfully`, start_time);
       res.status(200).json({ id, name, image });
     }
   );
@@ -151,17 +167,17 @@ app.put('/units/:id', (req, res) => {
 // Удаление юнита
 app.delete('/units/:id', (req, res) => {
   const { id } = req.params;
-
+  const start_time = new Date().toISOString()
   db.run('DELETE FROM units WHERE id = ?', [id], function (err) {
     if (err) {
-      log(`Error deleting unit with ID ${id}: ${err.message}`);
+      log(`Error deleting unit with ID ${id}: ${err.message}`, start_time);
       return res.status(500).json({ error: err.message });
     }
     if (this.changes === 0) {
-      log(`Unit with ID ${id} not found`);
+      log(`Unit with ID ${id} not found`, start_time);
       return res.status(404).json({ error: 'Unit not found' });
     }
-    log(`Unit with ID ${id} deleted successfully`);
+    log(`Unit with ID ${id} deleted successfully`, start_time);
     res.status(204).send();
   });
 });
